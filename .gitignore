@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.env
+.venv/
+venv/
+
+# SQLite scratch files (retail.db itself is committed so the demo runs instantly)
+*.db-journal
+*.db-wal
+*.db-shm

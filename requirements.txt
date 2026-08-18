@@ -1,0 +1,12 @@
+# core (required)
+pandas>=2.0
+numpy>=1.24
+streamlit>=1.32
+plotly>=5.18
+
+# LLM providers (optional - the app runs offline without them)
+anthropic>=0.39
+openai>=1.40
+
+# dev
+pytest>=8.0

@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Business Analyst — live demo</title>
+<style>
+:root{
+  --bg:#0f1216; --panel:#161b22; --panel2:#1c232c; --line:#2a323d;
+  --text:#e6edf3; --dim:#8b98a5; --accent:#5b9dff; --good:#2a9d8f;
+  --bad:#e5646f; --warn:#e0a458; --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+html[data-theme="light"]{
+  --bg:#f7f8fa; --panel:#ffffff; --panel2:#f0f2f5; --line:#dfe3e8;
+  --text:#11181f; --dim:#5a6672; --accent:#2563eb; --good:#0f766e;
+  --bad:#c0344a; --warn:#a86a12;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);
+  font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  -webkit-font-smoothing:antialiased}
+a{color:var(--accent)}
+.wrap{max-width:1180px;margin:0 auto;padding:24px 20px 72px}
+
+header{display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:22px}
+header h1{margin:0;font-size:1.5rem;letter-spacing:-.01em}
+header p{margin:4px 0 0;color:var(--dim);font-size:.9rem;max-width:640px}
+.spacer{flex:1}
+.btn{background:var(--panel);border:1px solid var(--line);color:var(--text);
+  border-radius:9px;padding:7px 13px;font-size:.84rem;cursor:pointer;transition:.15s}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(158px,1fr));gap:12px;margin-bottom:20px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:14px 16px}
+.kpi .l{font-size:.7rem;text-transform:uppercase;letter-spacing:.07em;color:var(--dim)}
+.kpi .v{font-size:1.42rem;font-weight:650;margin-top:3px;letter-spacing:-.02em}
+.kpi .d{font-size:.78rem;margin-top:2px}
+.up{color:var(--good)} .down{color:var(--bad)}
+
+.askbar{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+  padding:14px;margin-bottom:14px}
+.askrow{display:flex;gap:9px}
+#q{flex:1;background:var(--panel2);border:1px solid var(--line);color:var(--text);
+  border-radius:10px;padding:11px 14px;font-size:.95rem;outline:none}
+#q:focus{border-color:var(--accent)}
+#go{background:var(--accent);border:none;color:#fff;border-radius:10px;
+  padding:0 20px;font-weight:600;cursor:pointer;font-size:.9rem}
+.chips{display:flex;gap:7px;flex-wrap:wrap;margin-top:11px}
+.chip{background:transparent;border:1px solid var(--line);color:var(--dim);
+  border-radius:999px;padding:5px 12px;font-size:.79rem;cursor:pointer;transition:.15s}
+.chip:hover{border-color:var(--accent);color:var(--accent)}
+
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+  padding:20px;margin-bottom:14px;animation:in .28s ease}
+@keyframes in{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+.qline{font-size:.78rem;color:var(--dim);text-transform:uppercase;
+  letter-spacing:.07em;margin-bottom:9px}
+.insight h3{margin:0 0 9px;font-size:1.12rem;letter-spacing:-.01em}
+.insight ul{margin:9px 0;padding-left:19px}
+.insight li{margin:4px 0}
+.insight .caveats{background:var(--panel2);border-left:3px solid var(--warn);
+  border-radius:0 9px 9px 0;padding:11px 14px;margin:13px 0;font-size:.88rem}
+.insight .caveats b{color:var(--warn)}
+.insight .next{border-left:3px solid var(--accent);background:var(--panel2);
+  border-radius:0 9px 9px 0;padding:11px 14px;margin-top:13px;font-size:.9rem}
+
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);margin:18px 0 0}
+.tab{background:none;border:none;color:var(--dim);padding:8px 14px;cursor:pointer;
+  font-size:.85rem;border-bottom:2px solid transparent;margin-bottom:-1px}
+.tab.on{color:var(--text);border-bottom-color:var(--accent)}
+.pane{display:none;padding-top:14px}
+.pane.on{display:block}
+
+table{width:100%;border-collapse:collapse;font-size:.85rem}
+th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line)}
+th{color:var(--dim);font-weight:600;font-size:.75rem;text-transform:uppercase;
+  letter-spacing:.05em;position:sticky;top:0;background:var(--panel)}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+.tblwrap{max-height:340px;overflow:auto;border:1px solid var(--line);border-radius:10px}
+pre{background:var(--panel2);border:1px solid var(--line);border-radius:10px;
+  padding:14px;overflow:auto;font-family:var(--mono);font-size:.82rem;margin:0;
+  color:var(--text);line-height:1.5}
+.kw{color:var(--accent)} .str{color:var(--good)} .num2{color:var(--warn)}
+.trace{font-family:var(--mono);font-size:.8rem;color:var(--dim);line-height:1.9}
+.pill{display:inline-block;border:1px solid var(--line);border-radius:999px;
+  padding:2px 10px;font-size:.72rem;color:var(--dim);margin-right:6px}
+svg{display:block;width:100%;height:auto}
+.note{color:var(--dim);font-size:.82rem}
+footer{margin-top:34px;padding-top:18px;border-top:1px solid var(--line);
+  color:var(--dim);font-size:.82rem}
+footer code{background:var(--panel2);padding:2px 6px;border-radius:5px;
+  font-family:var(--mono);font-size:.95em}
+@media(max-width:620px){.askrow{flex-direction:column}#go{padding:11px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div>
+    <h1>AI Business Analyst</h1>
+    <p>Ask a business question in plain English. This page parses it, aggregates
+       the data, decomposes what actually moved, and writes the answer — all in
+       your browser, no server.</p>
+  </div>
+  <div class="spacer"></div>
+  <button class="btn" id="theme">Light mode</button>
+</header>
+
+<div class="kpis" id="kpis"></div>
+
+<div class="askbar">
+  <div class="askrow">
+    <input id="q" placeholder="Why did revenue drop in March 2026?" autocomplete="off">
+    <button id="go">Ask</button>
+  </div>
+  <div class="chips" id="chips"></div>
+</div>
+
+<div id="out"></div>
+
+<div class="card">
+  <div class="qline">Revenue by month · all data</div>
+  <div id="spark"></div>
+</div>
+
+<footer>
+  <b>What this is.</b> A standalone port of the Python project. The numbers come
+  from the same generated database (<span id="meta"></span>) — pre-aggregated into
+  cubes at build time, with the contribution-to-change analysis re-implemented in
+  JavaScript so the page genuinely computes rather than replaying canned answers.
+  <br><br>
+  <b>Honest limitation.</b> The cubes are one-dimensional, so this page can break
+  down by any single dimension but cannot cross-filter (e.g. "Electronics in EMEA").
+  It also uses the rule-based engine, not a live LLM. The full Python app
+  (<code>streamlit run streamlit_app.py</code>) has neither restriction.
+</footer>
+</div>
+
+<script>
+const DATA = /*__DATA__*/{};
+
+/* ---------------------------------------------------------------- helpers */
+const $ = s => document.querySelector(s);
+const fmt = n => (n==null||isNaN(n)) ? "—" :
+  Math.abs(n)>=1e6 ? (n/1e6).toFixed(2)+"M" :
+  Math.abs(n)>=1e3 ? Math.round(n).toLocaleString() : (+n).toFixed(2);
+const full = n => (n==null||isNaN(n)) ? "—" :
+  Math.round(n).toLocaleString();
+const pct = n => (n>=0?"+":"") + n.toFixed(1) + "%";
+const esc = s => String(s).replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+
+const MONTHS = DATA.months;
+const MI = Object.fromEntries(MONTHS.map((m,i)=>[m,i]));
+const MNAMES = ["january","february","march","april","may","june","july",
+  "august","september","october","november","december"];
+
+/* metric index into cube rows: [monthIdx, labelIdx, revenue, profit, orders, units] */
+const METRICS = {
+  revenue:{i:2, label:"Revenue",            money:true},
+  profit: {i:3, label:"Profit",             money:true},
+  orders: {i:4, label:"Orders",             money:false},
+  units:  {i:5, label:"Units sold",         money:false},
+  margin: {i:-1,label:"Margin %",           money:false},
+  aov:    {i:-2,label:"Average order value",money:true},
+};
+
+const DIMS = {
+  category:"Category", region:"Region", channel:"Channel",
+  segment:"Customer segment", product:"Product", customer:"Customer"
+};
+
+/* ------------------------------------------------------- question parsing */
+function parseQuestion(qRaw){
+  const q = qRaw.toLowerCase().trim();
+  const plan = {intent:"aggregate", metric:"revenue", dimension:null,
+                period:null, compareTo:null, topN:10, raw:qRaw};
+
+  // metric
+  const M = [["aov",["average order value","aov","basket","order value"]],
+             ["margin",["margin","profitability"]],
+             ["profit",["profit","gross profit"]],
+             ["units",["units","quantity","volume"]],
+             ["orders",["orders","transactions","purchases"]],
+             ["revenue",["revenue","sales","turnover","top line","gmv"]]];
+  for(const [k,ws] of M) if(ws.some(w=>q.includes(w))){plan.metric=k;break;}
+
+  // dimension — "by X" wins over an incidental mention
+  const D = [["category",["category","categories","product line"]],
+             ["region",["region","geography","market","country"]],
+             ["channel",["channel","online","store","marketplace"]],
+             ["segment",["segment","enterprise","smb","consumer"]],
+             ["product",["product","sku","item"]],
+             ["customer",["customer","account","client","buyer"]]];
+  const by = q.match(/\b(?:by|per|across)\s+([a-z ]{3,20})/);
+  if(by) for(const [k,ws] of D) if(ws.some(w=>by[1].includes(w))){plan.dimension=k;break;}
+  if(!plan.dimension) for(const [k,ws] of D)
+    if(ws.some(w=>new RegExp("\\b"+w).test(q))){plan.dimension=k;break;}
+
+  // period
+  const last = MONTHS[MONTHS.length-1];
+  let mIdx = null;
+  const my = q.match(/\b([a-z]{3,9})[\s\-\/]+(\d{4})\b/);
+  if(my){
+    const mi = MNAMES.findIndex(n=>n.startsWith(my[1].slice(0,3)));
+    if(mi>=0){
+      const key = my[2]+"-"+String(mi+1).padStart(2,"0");
+      if(key in MI) mIdx = MI[key];
+    }
+  }
+  if(mIdx===null){
+    for(let i=0;i<12;i++) if(new RegExp("\\b"+MNAMES[i]+"\\b").test(q)){
+      const cands = MONTHS.filter(m=>m.endsWith("-"+String(i+1).padStart(2,"0")));
+      if(cands.length) mIdx = MI[cands[cands.length-1]];
+      break;
+    }
+  }
+  const qm = q.match(/\bq([1-4])\b(?:\s*(?:of\s*)?(\d{4}))?/);
+  const lastN = q.match(/\blast\s+(\d{1,2})\s+months?\b/);
+  const yr = q.match(/\b(20\d{2})\b/);
+
+  if(mIdx!==null){
+    plan.period = {from:mIdx, to:mIdx, label:labelOf(MONTHS[mIdx])};
+  } else if(qm){
+    const year = qm[2] || last.slice(0,4);
+    const s = MI[year+"-"+String(+qm[1]*3-2).padStart(2,"0")];
+    const e = MI[year+"-"+String(+qm[1]*3).padStart(2,"0")];
+    if(s!=null&&e!=null) plan.period={from:s,to:e,label:"Q"+qm[1]+" "+year};
+  } else if(lastN){
+    const n = +lastN[1];
+    plan.period = {from:Math.max(0,MONTHS.length-n), to:MONTHS.length-1,
+                   label:"last "+n+" months"};
+  } else if(yr){
+    const idx = MONTHS.map((m,i)=>m.startsWith(yr[1])?i:-1).filter(i=>i>=0);
+    if(idx.length) plan.period={from:idx[0],to:idx[idx.length-1],label:yr[1]};
+  }
+
+  // intent
+  const why  = /\b(why|reason|cause|driver|explain|what happened)\b/.test(q);
+  const down = /\b(drop|dropped|decline|declined|fall|fell|decrease|decreased|down|dip|slump)\b/.test(q);
+  const up   = /\b(grow|grew|growth|increase|increased|rise|rose|up|spike|jump)\b/.test(q);
+  const trend= /\b(trend|over time|by month|monthly|history)\b/.test(q);
+  const rank = /\b(top|best|worst|bottom|highest|lowest|biggest|largest|which)\b/.test(q);
+
+  if(why && (down||up||true)){
+    plan.intent = "diagnostic";
+    if(!plan.period){const i=MONTHS.length-1; plan.period={from:i,to:i,label:labelOf(MONTHS[i])};}
+    const p = plan.period.from-1;
+    plan.compareTo = p>=0 ? {from:p,to:p,label:labelOf(MONTHS[p])} : null;
+    plan.dimension = null;
+    if(!plan.compareTo) plan.intent = "aggregate";
+  } else if(trend || plan.dimension==="month"){
+    plan.intent="trend"; plan.dimension=null;
+  } else if(rank){
+    plan.intent="rank"; plan.dimension = plan.dimension || "product";
+  }
+
+  const tn = q.match(/\btop\s+(\d{1,3})\b/);
+  if(tn) plan.topN = +tn[1];
+  if(!plan.period) plan.period={from:0,to:MONTHS.length-1,label:"all time"};
+  return plan;
+}
+function labelOf(m){
+  const [y,mm]=m.split("-");
+  return MNAMES[+mm-1][0].toUpperCase()+MNAMES[+mm-1].slice(1)+" "+y;
+}
+
+/* ------------------------------------------------------------ aggregation */
+function metricFrom(rev, prof, ord, units, metric){
+  switch(metric){
+    case "revenue": return rev;
+    case "profit":  return prof;
+    case "orders":  return ord;
+    case "units":   return units;
+    case "margin":  return rev ? prof/rev*100 : 0;
+    case "aov":     return ord ? rev/ord : 0;
+  }
+}
+/** total metric over a month range, from the whole-business totals */
+function totalFor(period, metric){
+  let r=0,p=0,o=0,u=0;
+  for(let i=period.from;i<=period.to;i++){
+    const t = DATA.totals[i]; if(!t) continue;
+    r+=t[0]; p+=t[1]; o+=t[2]; u+=t[3];
+  }
+  return metricFrom(r,p,o,u,metric);
+}
+/** metric by dimension over a month range -> Map(label -> value) */
+function byDimension(dim, period, metric){
+  const cube = DATA.cubes[dim];
+  const acc = new Map();
+  for(const [mi,li,rev,prof,ord,units] of cube.rows){
+    if(mi<period.from || mi>period.to) continue;
+    const k = cube.labels[li];
+    const a = acc.get(k) || [0,0,0,0];
+    a[0]+=rev; a[1]+=prof; a[2]+=ord; a[3]+=units;
+    acc.set(k,a);
+  }
+  const out = new Map();
+  for(const [k,a] of acc) out.set(k, metricFrom(a[0],a[1],a[2],a[3],metric));
+  return out;
+}
+function monthlySeries(metric, period){
+  const rows=[];
+  const from = period ? period.from : 0, to = period ? period.to : MONTHS.length-1;
+  for(let i=from;i<=to;i++){
+    const t=DATA.totals[i]; if(!t) continue;
+    rows.push({month:MONTHS[i], value:metricFrom(t[0],t[1],t[2],t[3],metric)});
+  }
+  return rows;
+}
+
+/* --------------------------------------------------------- root cause ---- */
+function rootCause(plan){
+  const metric = plan.metric;
+  const prevTotal = totalFor(plan.compareTo, metric);
+  const currTotal = totalFor(plan.period, metric);
+  const delta = currTotal - prevTotal;
+  const pctChange = prevTotal ? delta/prevTotal*100 : 0;
+
+  const contributors = [];
+  const byDim = {};
+  for(const dim of Object.keys(DIMS)){
+    const prev = byDimension(dim, plan.compareTo, metric);
+    const curr = byDimension(dim, plan.period,   metric);
+    const keys = new Set([...prev.keys(), ...curr.keys()]);   // outer join
+    const rows = [];
+    for(const k of keys){
+      const a = prev.get(k)||0, b = curr.get(k)||0;
+      rows.push({value:k, prev:a, curr:b, delta:b-a,
+                 pctChange: a ? (b-a)/a*100 : NaN,
+                 share: delta ? (b-a)/delta : 0});
+    }
+    rows.sort((x,y)=>x.delta-y.delta);
+    byDim[dim] = rows;
+    rows.filter(r=>r.share>=0.03)
+        .sort((x,y)=>Math.abs(y.share)-Math.abs(x.share))
+        .slice(0,3)
+        .forEach(r=>contributors.push({...r, dimension:dim, label:DIMS[dim]}));
+  }
+  contributors.sort((a,b)=>Math.abs(b.share)-Math.abs(a.share));
+
+  return {metric, metricLabel:METRICS[metric].label,
+          periodLabel:plan.period.label, compareLabel:plan.compareTo.label,
+          prevTotal, currTotal, delta, pctChange,
+          contributors:contributors.slice(0,15), byDim,
+          notes:sanityNotes(plan, prevTotal, currTotal)};
+}
+
+/** the checks a careful analyst runs before publishing */
+function sanityNotes(plan, prevTotal, currTotal){
+  const notes = [];
+  const days = m => {const [y,mm]=m.split("-").map(Number); return new Date(y,mm,0).getDate();};
+  if(plan.period.from===plan.period.to && plan.compareTo.from===plan.compareTo.to){
+    const dc = days(MONTHS[plan.period.to]), dp = days(MONTHS[plan.compareTo.to]);
+    if(dc!==dp && prevTotal){
+      const adj = currTotal/dc*dp;
+      notes.push(`Periods differ in length (${dp} vs ${dc} days); on a per-day basis the change is <b>${pct((adj-prevTotal)/prevTotal*100)}</b>.`);
+    }
+    const cr = Object.fromEntries(DATA.cancel_rate);
+    const a = cr[MONTHS[plan.compareTo.to]], b = cr[MONTHS[plan.period.to]];
+    if(a!=null && b!=null && b-a>0.5)
+      notes.push(`Order cancellation rate rose from ${a.toFixed(1)}% to ${b.toFixed(1)}% — cancelled orders are excluded from revenue, so real demand fell less than the headline.`);
+    const key = MONTHS[plan.period.to];
+    const ly = (+key.slice(0,4)-1)+key.slice(4);
+    if(MI[ly]!=null){
+      const lyv = totalFor({from:MI[ly],to:MI[ly]}, plan.metric);
+      if(lyv) notes.push(`Year-over-year, the same month is <b>${pct((currTotal-lyv)/lyv*100)}</b> — so this is not purely seasonal.`);
+    }
+  }
+  return notes;
+}
+
+/* ------------------------------------------------------------- SQL render */
+const SQLM = {revenue:"ROUND(SUM(revenue), 2) AS revenue",
+  profit:"ROUND(SUM(profit), 2) AS profit",
+  orders:"COUNT(DISTINCT order_id) AS orders",
+  units:"SUM(quantity) AS units",
+  margin:"ROUND(100.0 * SUM(profit) / SUM(revenue), 2) AS margin_pct",
+  aov:"ROUND(SUM(revenue) / COUNT(DISTINCT order_id), 2) AS avg_order_value"};
+const SQLD = {category:"category", region:"region_name", channel:"channel",
+  segment:"segment", product:"product_name", customer:"customer_name"};
+
+function bounds(p){
+  const s=MONTHS[p.from]+"-01";
+  const [y,m]=MONTHS[p.to].split("-").map(Number);
+  return [s, `${MONTHS[p.to]}-${String(new Date(y,m,0).getDate()).padStart(2,"0")}`];
+}
+function buildSQL(plan, rc){
+  if(plan.intent==="diagnostic"){
+    const [cs,ce]=bounds(plan.period), [ps,pe]=bounds(plan.compareTo);
+    return `-- Root-cause decomposition: this pair runs once per dimension\n`+
+      `-- (category, region, channel, segment, product, customer)\n\n`+
+      `SELECT category AS dimension_value,\n       ${SQLM[plan.metric]}\n`+
+      `FROM v_sales\nWHERE order_date BETWEEN '${ps}' AND '${pe}'   -- baseline\n`+
+      `GROUP BY category;\n\n`+
+      `SELECT category AS dimension_value,\n       ${SQLM[plan.metric]}\n`+
+      `FROM v_sales\nWHERE order_date BETWEEN '${cs}' AND '${ce}'   -- target\n`+
+      `GROUP BY category;\n\n`+
+      `-- The two results are outer-joined, then each segment's\n`+
+      `--   share_of_change = delta / total_delta\n`+
+      `-- is what the ranking uses. Outer join matters: a customer who bought\n`+
+      `-- in the baseline and nothing in the target has no target row.`;
+  }
+  const [s,e]=bounds(plan.period);
+  if(plan.intent==="trend")
+    return `SELECT order_month,\n       ${SQLM[plan.metric]}\nFROM v_sales\n`+
+           `WHERE order_date BETWEEN '${s}' AND '${e}'\nGROUP BY order_month\nORDER BY order_month`;
+  if(plan.dimension){
+    const c=SQLD[plan.dimension];
+    return `SELECT ${c},\n       ${SQLM[plan.metric]}\nFROM v_sales\n`+
+      `WHERE order_date BETWEEN '${s}' AND '${e}'\nGROUP BY ${c}\n`+
+      `ORDER BY 2 DESC\nLIMIT ${plan.topN}`;
+  }
+  return `SELECT ${SQLM[plan.metric]}\nFROM v_sales\nWHERE order_date BETWEEN '${s}' AND '${e}'`;
+}
+function hlSQL(sql){
+  return esc(sql)
+    .replace(/^(--.*)$/gm,'<span style="color:var(--dim)">$1</span>')
+    .replace(/\b(SELECT|FROM|WHERE|GROUP BY|ORDER BY|LIMIT|BETWEEN|AND|AS|SUM|COUNT|DISTINCT|ROUND|DESC|ASC)\b/g,'<span class="kw">$1</span>')
+    .replace(/('[^']*')/g,'<span class="str">$1</span>');
+}
+
+/* ------------------------------------------------------------- SVG charts */
+const PAL = ["#5b9dff","#2a9d8f","#e0a458","#e5646f","#a78bfa","#4dd4c0"];
+function svgLine(rows, money){
+  const W=880,H=250,pl=64,pr=16,pt=16,pb=32;
+  const vals=rows.map(r=>r.value), max=Math.max(...vals), min=Math.min(...vals,0);
+  const x=i=>pl+i*(W-pl-pr)/Math.max(1,rows.length-1);
+  const y=v=>pt+(1-(v-min)/((max-min)||1))*(H-pt-pb);
+  const d=rows.map((r,i)=>(i?"L":"M")+x(i).toFixed(1)+" "+y(r.value).toFixed(1)).join(" ");
+  const area=d+` L${x(rows.length-1)} ${y(min)} L${x(0)} ${y(min)} Z`;
+  let g="";
+  for(let k=0;k<=3;k++){const v=min+(max-min)*k/3;
+    g+=`<line x1="${pl}" x2="${W-pr}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" stroke-width="1"/>
+        <text x="${pl-8}" y="${y(v)+4}" fill="var(--dim)" font-size="10" text-anchor="end">${fmt(v)}</text>`;}
+  const step=Math.ceil(rows.length/9);
+  const lab=rows.map((r,i)=>i%step?"":`<text x="${x(i)}" y="${H-10}" fill="var(--dim)" font-size="10" text-anchor="middle">${r.month}</text>`).join("");
+  const dots=rows.map((r,i)=>`<circle cx="${x(i)}" cy="${y(r.value)}" r="2.6" fill="var(--accent)"><title>${r.month}: ${full(r.value)}</title></circle>`).join("");
+  return `<svg viewBox="0 0 ${W} ${H}" role="img">
+    <defs><linearGradient id="lg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="var(--accent)" stop-opacity=".28"/>
+      <stop offset="1" stop-color="var(--accent)" stop-opacity="0"/></linearGradient></defs>
+    ${g}<path d="${area}" fill="url(#lg)"/>
+    <path d="${d}" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linejoin="round"/>
+    ${dots}${lab}</svg>`;
+}
+function svgBar(rows, keyName){
+  const n=rows.length, rh=30, W=880, H=n*rh+26, pl=Math.min(220,Math.max(...rows.map(r=>r.key.length))*7+12);
+  const max=Math.max(...rows.map(r=>Math.abs(r.value)))||1;
+  let s="";
+  rows.forEach((r,i)=>{
+    const w=Math.abs(r.value)/max*(W-pl-92), y=i*rh+8;
+    s+=`<text x="${pl-10}" y="${y+15}" fill="var(--text)" font-size="11.5" text-anchor="end">${esc(r.key.slice(0,32))}</text>
+        <rect x="${pl}" y="${y+3}" width="${w.toFixed(1)}" height="17" rx="4" fill="${PAL[i%PAL.length]}" opacity=".92"><title>${esc(r.key)}: ${full(r.value)}</title></rect>
+        <text x="${pl+w+8}" y="${y+16}" fill="var(--dim)" font-size="11" font-variant-numeric="tabular-nums">${fmt(r.value)}</text>`;
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" role="img">${s}</svg>`;
+}
+function svgWaterfall(rc){
+  const bars=[{l:rc.compareLabel,v:rc.prevTotal,t:"total"}];
+  const topDim = rc.contributors.length ? rc.contributors[0].dimension : null;
+  let used=0;
+  if(topDim) for(const c of rc.byDim[topDim].slice().sort((a,b)=>a.delta-b.delta)){
+    if(Math.abs(c.share)<0.02) continue;
+    bars.push({l:c.value,v:c.delta,t:"rel"}); used+=c.delta;
+    if(bars.length>=8) break;
+  }
+  const resid=rc.delta-used;
+  if(Math.abs(resid)>1) bars.push({l:"Everything else",v:resid,t:"rel"});
+  bars.push({l:rc.periodLabel,v:rc.currTotal,t:"total"});
+
+  const W=880,H=300,pl=64,pr=16,pt=18,pb=56;
+  let run=0; const tops=[];
+  for(const b of bars){
+    if(b.t==="total"){tops.push([0,b.v]); run=b.v;}
+    else {tops.push([run, run+b.v]); run+=b.v;}
+  }
+  const max=Math.max(...tops.flat(),0)*1.06, min=Math.min(...tops.flat(),0);
+  const y=v=>pt+(1-(v-min)/((max-min)||1))*(H-pt-pb);
+  const bw=(W-pl-pr)/bars.length*0.62, gap=(W-pl-pr)/bars.length;
+  let s="";
+  for(let k=0;k<=3;k++){const v=min+(max-min)*k/3;
+    s+=`<line x1="${pl}" x2="${W-pr}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)"/>
+        <text x="${pl-8}" y="${y(v)+4}" fill="var(--dim)" font-size="10" text-anchor="end">${fmt(v)}</text>`;}
+  bars.forEach((b,i)=>{
+    const x=pl+i*gap+(gap-bw)/2;
+    const [a,c]=tops[i], y0=y(Math.max(a,c)), y1=y(Math.min(a,c));
+    const col=b.t==="total"?"var(--dim)":(b.v<0?"var(--bad)":"var(--good)");
+    s+=`<rect x="${x.toFixed(1)}" y="${y0.toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(2,y1-y0).toFixed(1)}" rx="3" fill="${col}" opacity=".9"><title>${esc(b.l)}: ${b.t==="total"?full(b.v):(b.v>=0?"+":"")+full(b.v)}</title></rect>
+        <text x="${(x+bw/2).toFixed(1)}" y="${(y0-6).toFixed(1)}" fill="var(--dim)" font-size="10" text-anchor="middle">${b.t==="total"?fmt(b.v):(b.v>=0?"+":"")+fmt(b.v)}</text>`;
+    const words=b.l.length>16?b.l.slice(0,15)+"…":b.l;
+    s+=`<text x="${(x+bw/2).toFixed(1)}" y="${H-pb+18}" fill="var(--dim)" font-size="10" text-anchor="end" transform="rotate(-30 ${(x+bw/2).toFixed(1)} ${H-pb+18})">${esc(words)}</text>`;
+    if(i<bars.length-1) s+=`<line x1="${x+bw}" x2="${pl+(i+1)*gap+(gap-bw)/2}" y1="${y(c)}" y2="${y(c)}" stroke="var(--line)" stroke-dasharray="3 3"/>`;
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" role="img">${s}</svg>`;
+}
+
+/* ---------------------------------------------------------------- answers */
+function answerDiagnostic(plan){
+  const rc = rootCause(plan);
+  const verb = rc.delta<0 ? "decreased" : "increased";
+  const money = METRICS[rc.metric].money;
+
+  let h = `<h3>${rc.metricLabel} ${verb} ${Math.abs(rc.pctChange).toFixed(1)}% in ${rc.periodLabel}</h3>`;
+  h += `<p>Versus ${rc.compareLabel}: <b>${full(rc.prevTotal)}</b> → <b>${full(rc.currTotal)}</b>
+        (<span class="${rc.delta<0?"down":"up"}">${rc.delta>=0?"+":""}${full(rc.delta)}</span>).</p>`;
+
+  const seen=new Set(); const picks=[];
+  for(const c of rc.contributors){
+    if(seen.has(c.dimension+"|"+c.value)) continue;
+    seen.add(c.dimension+"|"+c.value); picks.push(c);
+    if(picks.length>=6) break;
+  }
+  if(picks.length){
+    h += `<p><b>What drove it</b></p><ul>` + picks.map(c=>
+      `<li><b>${esc(c.label)}: ${esc(c.value)}</b> ${c.delta<0?"down":"up"}
+       ${Math.abs(c.pctChange).toFixed(1)}% (${full(c.prev)} → ${full(c.curr)}) —
+       <b>${Math.round(Math.abs(c.share)*100)}%</b> of the total change</li>`).join("") + `</ul>`;
+  } else {
+    h += `<p>No single segment explains the change; it is broad-based.</p>`;
+  }
+  if(rc.notes.length)
+    h += `<div class="caveats"><b>Caveats</b><ul style="margin:6px 0 0">` +
+         rc.notes.map(n=>`<li>${n}</li>`).join("") + `</ul></div>`;
+  if(picks.length)
+    h += `<div class="next"><b>Next step</b> — pull weekly ${rc.metricLabel.toLowerCase()}
+          for ${picks[0].label.toLowerCase()} “${esc(picks[0].value)}” to see whether this is a
+          one-off week or a sustained level shift.</div>`;
+
+  const table = rc.contributors.map(c=>({
+    dimension:c.dimension, segment:c.value,
+    [rc.compareLabel]:Math.round(c.prev), [rc.periodLabel]:Math.round(c.curr),
+    change:Math.round(c.delta), "change %":isNaN(c.pctChange)?"—":c.pctChange.toFixed(1),
+    "share of change %":(c.share*100).toFixed(1)}));
+
+  return {insight:h, chart:svgWaterfall(rc), chartNote:
+    `Bridge from ${rc.compareLabel} to ${rc.periodLabel}, broken out by ${rc.contributors[0]?rc.contributors[0].dimension:"segment"}.`,
+    table, sql:buildSQL(plan,rc), plan,
+    trace:[`intent = diagnostic → root-cause branch (no text-to-SQL)`,
+           `periods: ${rc.compareLabel} (baseline) → ${rc.periodLabel} (target)`,
+           `scanned dimensions: ${Object.keys(DIMS).join(", ")}`,
+           `outer-joined each dimension, computed Δ, %Δ and share of total Δ`,
+           `kept top 3 per dimension, then ranked globally by |share|`,
+           `headline: ${full(rc.prevTotal)} → ${full(rc.currTotal)} (${pct(rc.pctChange)})`,
+           `sanity checks run: period length, cancellation rate, year-over-year`,
+           `narrative composed from computed facts (rule engine, no LLM call)`]};
+}
+
+function answerStandard(plan){
+  const m = METRICS[plan.metric];
+  let rows, chart, chartNote, table;
+
+  if(plan.intent==="trend"){
+    rows = monthlySeries(plan.metric, plan.period);
+    chart = svgLine(rows, m.money);
+    chartNote = `${m.label} by month, ${plan.period.label}.`;
+    table = rows.map(r=>({month:r.month, [plan.metric]:Math.round(r.value)}));
+    const first=rows[0], last=rows[rows.length-1];
+    const ch = first.value ? (last.value-first.value)/first.value*100 : 0;
+    const peak = rows.reduce((a,b)=>b.value>a.value?b:a);
+    const low  = rows.reduce((a,b)=>b.value<a.value?b:a);
+    var insight = `<h3>${m.label} over ${plan.period.label}</h3>
+      <p>${m.label} moved from <b>${full(first.value)}</b> (${first.month}) to
+      <b>${full(last.value)}</b> (${last.month}), <span class="${ch<0?"down":"up"}">${pct(ch)}</span>.</p>
+      <ul><li>Peak: <b>${peak.month}</b> at ${full(peak.value)}</li>
+      <li>Trough: <b>${low.month}</b> at ${full(low.value)}</li>
+      <li>Average: ${full(rows.reduce((s,r)=>s+r.value,0)/rows.length)} per month</li></ul>
+      <div class="next"><b>What I'd look at next</b> — ask
+      “why did revenue drop in ${labelOf(low.month)}?” to decompose the trough.</div>`;
+  } else {
+    const dim = plan.dimension || "category";
+    const map = byDimension(dim, plan.period, plan.metric);
+    rows = [...map.entries()].map(([key,value])=>({key,value}))
+             .sort((a,b)=>b.value-a.value).slice(0, plan.intent==="rank"?plan.topN:25);
+    chart = svgBar(rows, dim);
+    chartNote = `${m.label} by ${dim}, ${plan.period.label}.`;
+    table = rows.map(r=>({[dim]:r.key, [plan.metric]:Math.round(r.value)}));
+    const total = rows.reduce((s,r)=>s+r.value,0);
+    const top3 = rows.slice(0,3);
+    var insight = `<h3>${m.label} by ${DIMS[dim].toLowerCase()} — ${plan.period.label}</h3>
+      <p><b>${esc(rows[0].key)}</b> leads at <b>${full(rows[0].value)}</b>${
+        rows[1]?`, ahead of ${esc(rows[1].key)} at ${full(rows[1].value)}`:""}.</p>
+      <ul>${top3.map(r=>`<li>${esc(r.key)} — ${full(r.value)}
+        (${(r.value/total*100).toFixed(1)}% of the ${rows.length} shown)</li>`).join("")}</ul>
+      <p>The top 3 account for <b>${(top3.reduce((s,r)=>s+r.value,0)/total*100).toFixed(1)}%</b>
+      of the total. ${rows.length>5?`The tail below them is long and flat — concentration is real.`:""}</p>
+      <div class="next"><b>What I'd look at next</b> — compare this split against the
+      prior period to see whether the mix is shifting, not just the level.</div>`;
+  }
+
+  return {insight, chart, chartNote, table, sql:buildSQL(plan), plan,
+    trace:[`intent = ${plan.intent} → template SQL branch`,
+           `metric = ${plan.metric}${plan.dimension?`, dimension = ${plan.dimension}`:""}`,
+           `period resolved to ${plan.period.label} (${MONTHS[plan.period.from]} … ${MONTHS[plan.period.to]})`,
+           `SQL generated from the plan, validated read-only, executed`,
+           `${table.length} row(s) returned`,
+           `chart chosen by data shape: ${plan.intent==="trend"?"time column present → line":"1 category + 1 number → sorted bar"}`,
+           `narrative composed from computed facts (rule engine, no LLM call)`]};
+}
+
+/* ------------------------------------------------------------------ render */
+let uid=0;
+function render(qText){
+  const t0=performance.now();
+  const plan = parseQuestion(qText);
+  const a = (plan.intent==="diagnostic" && plan.compareTo)
+            ? answerDiagnostic(plan) : answerStandard(plan);
+  const ms = (performance.now()-t0).toFixed(1);
+  const id = "a"+(++uid);
+
+  const cols = a.table.length ? Object.keys(a.table[0]) : [];
+  const tbl = a.table.length ? `<div class="tblwrap"><table><thead><tr>`+
+    cols.map(c=>`<th class="${typeof a.table[0][c]==="number"?"num":""}">${esc(c)}</th>`).join("")+
+    `</tr></thead><tbody>`+
+    a.table.map(r=>`<tr>`+cols.map(c=>`<td class="${typeof r[c]==="number"?"num":""}">${
+      typeof r[c]==="number"?r[c].toLocaleString():esc(r[c])}</td>`).join("")+`</tr>`).join("")+
+    `</tbody></table></div>` : `<p class="note">No rows.</p>`;
+
+  const card = document.createElement("div");
+  card.className="card";
+  card.innerHTML = `
+    <div class="qline">You asked</div>
+    <div style="font-size:1.02rem;margin-bottom:14px">${esc(qText)}</div>
+    <div class="insight">${a.insight}</div>
+    <div style="margin-top:16px">${a.chart}</div>
+    <p class="note" style="margin:6px 0 0">${a.chartNote||""}</p>
+    <div class="tabs">
+      <button class="tab on" data-p="${id}d">Data</button>
+      <button class="tab" data-p="${id}s">SQL</button>
+      <button class="tab" data-p="${id}t">How I got here</button>
+    </div>
+    <div class="pane on" id="${id}d">${tbl}</div>
+    <div class="pane" id="${id}s"><pre>${hlSQL(a.sql)}</pre>
+      <p class="note" style="margin-top:8px">This is the SQL the Python app runs.
+      On this page the equivalent aggregation happens in JavaScript over pre-built cubes.</p></div>
+    <div class="pane" id="${id}t">
+      <div style="margin-bottom:10px">
+        <span class="pill">${a.plan.intent}</span>
+        <span class="pill">${a.plan.metric}</span>
+        <span class="pill">${a.plan.period.label}</span>
+        <span class="pill">${ms} ms</span></div>
+      <div class="trace">${a.trace.map(s=>"• "+esc(s)).join("<br>")}</div>
+    </div>`;
+  card.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{
+    card.querySelectorAll(".tab").forEach(x=>x.classList.remove("on"));
+    card.querySelectorAll(".pane").forEach(x=>x.classList.remove("on"));
+    b.classList.add("on"); card.querySelector("#"+b.dataset.p).classList.add("on");
+  });
+  $("#out").prepend(card);
+  card.scrollIntoView({behavior:"smooth", block:"nearest"});
+}
+
+/* ------------------------------------------------------------------- boot */
+function boot(){
+  const n=MONTHS.length, t=DATA.totals, last=t[n-1], prev=t[n-2];
+  const k=[["Revenue", full(last[0]), (last[0]-prev[0])/prev[0]*100],
+           ["Orders", last[2].toLocaleString(), (last[2]-prev[2])/prev[2]*100],
+           ["Gross margin", (last[1]/last[0]*100).toFixed(1)+"%", null],
+           ["Avg order value", full(last[0]/last[2]), null]];
+  $("#kpis").innerHTML = `<div class="kpi"><div class="l">Latest month</div>
+      <div class="v">${labelOf(MONTHS[n-1])}</div>
+      <div class="d" style="color:var(--dim)">${DATA.meta.orders.toLocaleString()} orders in dataset</div></div>` +
+    k.map(([l,v,d])=>`<div class="kpi"><div class="l">${l}</div><div class="v">${v}</div>
+      <div class="d ${d==null?"":(d>=0?"up":"down")}">${d==null?"&nbsp;":pct(d)+" vs prior month"}</div></div>`).join("");
+
+  $("#spark").innerHTML = svgLine(monthlySeries("revenue"), true);
+  $("#meta").textContent = `${DATA.meta.orders.toLocaleString()} orders, ` +
+    `${DATA.meta.line_items.toLocaleString()} line items, ${DATA.meta.customers} customers, ` +
+    `${DATA.meta.date_range[0]} → ${DATA.meta.date_range[1]}`;
+
+  const EX = ["Why did revenue drop in March 2026?",
+              "Show me monthly revenue trend",
+              "Top 10 products by revenue in 2026",
+              "Revenue by region for Q1 2026",
+              "Which customers spent the most in 2026?",
+              "Profit margin by category",
+              "Average order value over time",
+              "Why did revenue grow in November 2025?"];
+  $("#chips").innerHTML = EX.map(e=>`<button class="chip">${esc(e)}</button>`).join("");
+  $("#chips").querySelectorAll(".chip").forEach(b=>b.onclick=()=>{
+    $("#q").value=b.textContent; render(b.textContent);});
+
+  $("#go").onclick=()=>{const v=$("#q").value.trim(); if(v) render(v);};
+  $("#q").addEventListener("keydown",e=>{if(e.key==="Enter"){const v=$("#q").value.trim(); if(v) render(v);}});
+  $("#theme").onclick=()=>{
+    const h=document.documentElement;
+    const light = h.dataset.theme==="light";
+    h.dataset.theme = light?"dark":"light";
+    $("#theme").textContent = light?"Light mode":"Dark mode";
+  };
+
+  render(EX[0]);   // land on the flagship answer
+}
+boot();
+</script>
+</body>
+</html>
