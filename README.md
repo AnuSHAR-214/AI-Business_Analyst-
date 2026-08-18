@@ -1,5 +1,8 @@
 # AI Business Analyst Assistant
 
+### 🔗 [Live demo →](https://ai-business-analyst.streamlit.app)
+
+
 Ask a business question in plain English. The assistant writes the SQL, runs it
 against a real database, decomposes what actually moved, draws the right chart,
 and explains the answer the way an analyst would.
